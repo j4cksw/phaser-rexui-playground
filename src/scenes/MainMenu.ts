@@ -2,6 +2,7 @@ import { Scene, GameObjects } from "phaser";
 import GridSizer from "phaser3-rex-plugins/templates/ui/gridsizer/GridSizer";
 import ScrollablePanel from "phaser3-rex-plugins/templates/ui/scrollablepanel/ScrollablePanel";
 import RexUIPlugin from "phaser3-rex-plugins/templates/ui/ui-plugin.js";
+import { nextCursor } from "./cursor";
 
 interface MenuItem {
   isSelected: boolean;
@@ -47,7 +48,7 @@ export class MainMenu extends Scene {
     //   orientation: "y",
     // }).setOrigin(0, 0);
 
-    this.menuItems = Array.from({ length: 3 }, (value, index) => {
+    this.menuItems = Array.from({ length: 50 }, (value, index) => {
       return { isSelected: index === 0, text: `text${index}` };
     });
 
@@ -84,50 +85,20 @@ export class MainMenu extends Scene {
     this.addSizer();
 
     this.input.keyboard?.on("keydown", (e: any) => {
-      switch (e.key) {
-        case "ArrowUp":
-          this.currentVerticalSelectedIndex -= 1;
-          if (this.currentVerticalSelectedIndex < 0)
-            this.currentVerticalSelectedIndex = this.gridSizer.rowCount - 1;
-          break;
-        case "ArrowDown":
-          this.currentVerticalSelectedIndex += 1;
-          
-          if (this.currentVerticalSelectedIndex > this.gridSizer.rowCount - 1)
-            this.currentVerticalSelectedIndex = 0;
-          break;
 
-        case "ArrowLeft":
-          this.currentHorizontalSelectedIndex -= 1;
-          if (this.coordinateToArrayIndex() > this.menuItems.length-1)
-            break;
-          if (this.currentHorizontalSelectedIndex < 0)
-            this.currentHorizontalSelectedIndex =
-              this.gridSizer.columnCount - 1;
-          break;
-        case "ArrowRight":
-          this.currentHorizontalSelectedIndex += 1;
-          if (this.coordinateToArrayIndex() > this.menuItems.length-1)
-            break
-          if (
-            this.currentHorizontalSelectedIndex >
-            this.gridSizer.columnCount - 1
-          )
-            this.currentHorizontalSelectedIndex = 0;
-          break;
-      }
+      let nextPoint = nextCursor(
+        {
+          x: this.currentHorizontalSelectedIndex,
+          y: this.currentVerticalSelectedIndex,
+        },
+        this.menuItems,
+        e.key
+      );
 
-      console.log(this.currentVerticalSelectedIndex);
-      console.log(this.currentHorizontalSelectedIndex);
+      console.log(nextPoint)
 
-      if (this.coordinateToArrayIndex() > this.menuItems.length-1)
-            this.currentVerticalSelectedIndex = 0;
-      
-
-      if (this.menuItems.length == 1) {
-        this.currentHorizontalSelectedIndex = 0;
-        this.currentVerticalSelectedIndex = 0;
-      }
+      this.currentHorizontalSelectedIndex = nextPoint.x;
+      this.currentVerticalSelectedIndex = nextPoint.y;
 
       this.menuItems = this.menuItems.map((mi, index) => {
         return {
@@ -139,9 +110,9 @@ export class MainMenu extends Scene {
       this.addSizer();
 
       this.scrollPanel.t =
-        (this.currentVerticalSelectedIndex - 0) / (this.gridSizer.rowCount - 0);
+        (this.currentVerticalSelectedIndex - 0) / (this.gridSizer.rowCount-1);
+        console.log(this.scrollPanel.t);
       this.scrollPanel.layout();
-      console.log(this.scrollPanel.t);
     });
   }
 
